@@ -1,0 +1,287 @@
+
+Análise exploratória de dados
+A análise exploratória de dados visa buscar reconhecer os atributos ou características que proporcionam maior impacto nos resultados "alvos". O objetivo desta prática é a realização de análises exploratórias a partir de uma base de dados de veículos tendo como objetivo a identificação das características que proporcionam maior impacto nos resultados (preço final).
+
+Quais são as principais características que impactam no preço do carro?
+1. Importação dos dados
+Importação das bibliotecas
+In [ ]:
+import pandas as pd
+import numpy as np
+A base de dados será carregada como um dataframe "df".
+Esta base de dados foi previamente importada, mas pode ser carregada diretamente do
+site no endereço:
+'https://s3-api.us-geo.objectstorage.softlayer.net/cf-courses-data/CognitiveClass/DA0101EN/automobileEDA.csv'
+
+In [ ]:
+path = 'https://s3-api.us-geo.objectstorage.softlayer.net/cf-courses-data/CognitiveClass/DA0101EN/automobileEDA.csv'
+df = pd.read_csv(path)
+df.head()
+2. Análise das características ("features") individualmente através da visualização dos dados.
+In [ ]:
+df.shape
+In [ ]:
+#
+# Importação das bibliotecas de visualização dos dados
+#
+import matplotlib.pyplot as plt
+import seaborn as sns
+%matplotlib inline
+Importante ressaltar que a biblioteca para visualização de modelos estatísticos (seaborn) já vem
+instalada no anaconda 3, caso seu aplicativo não disponha desta biblioteca, utilize o comando
+pip do python, ou seja:
+%%capture
+!pip install seaborn
+Como escolher o método correto para visualização !!!
+É importante reconhecer os tipos de variáveis que está sendo tratada.
+Este procedimento visa identificar o melhor modelo de visualização das variáveis.
+In [ ]:
+#
+# lista do tipo de variáveis
+#
+print(df.dtypes)
+In [ ]:
+print(df['peak-rpm'].dtype)
+Pode-se calcular a correlação entre as variáveis do tipo int64 e float64 empregando-se o comando corr
+In [ ]:
+df.corr()
+Cálculo da correlação entre: cilindro ("bore") , tração ("stroke"), taxa de compressão
+("compression-ratio") e potência ("horsepower")
+In [ ]:
+df[['bore','stroke','compression-ratio','horsepower']].corr()
+Variáveis numéricas continuas
+Tratam-se de variáveis que contém qualquer valor com a mesma dimensão. Podem ser do tipo "int64"
+ou "float64".
+Uma boa prática para visualização dessas variáveis é o emprego da plotagem com dispersão em composição com o ajuste de linhas. Utilizaremos o método regplot para ilustrar o entendimento da relação linear entre uma variável individual e o preço.
+
+In [ ]:
+# Dimensão do motor vs preço
+plt.figure(figsize=(12,8))
+sns.regplot(x="engine-size",y="price",data=df)
+plt.ylim(0,)
+In [ ]:
+df[['engine-size','price']].corr()
+Observe que o valor da correlação (próximo de 1) identifica a existência de uma boa relação entre os atributos
+Outras variáveis com valores altos de correlação também podem ser verificadas
+Atividade: Verifique a correlação e faça o gráfico representativo das variáveis listadas abaixo em relação ao preço dos veículos":
+Qual desses atribuitos você selecionaria para a construção de um modelo ???
+In [ ]:
+
+In [ ]:
+
+Relação Linear Fraca
+Vamos avaliar a variável "peak-rpm" em relação ao preço ("price") do veículo:
+In [ ]:
+plt.figure(figsize=(12,8))
+sns.regplot(x="peak-rpm",y="price",data=df)
+In [ ]:
+df[['peak-rpm','price']].corr()
+Os resultados mostraram um relação linear "fraca". A variável contínua "peak-rpm" não seria uma boa seleção para inclusão em um modelo preditivo do preço do automóvel.
+Variáveis Categóricas ("Features" ou Características)
+São variáveis que descrevem a característica de uma unidade de dado e são selecionadas de um pequeno grupo de categorias.
+As variáveis categóricas podem ser dos tipos "object" ou "int64".
+Uma boa alternativa para visualização de variáveis categóricas é o uso do "boxplot".
+Vamos avaliar a relação entre "body-style" (tipo, ou categoria do veículo) e o preço ("price").
+In [ ]:
+plt.figure(figsize=(12,8))
+sns.boxplot(x='body-style',y='price',data=df)
+Observe os resultados mostraram a sobreposíção de preços em relação ao estilo do carro.
+Desta forma podemos concluir que esta variável não é uma boa variável para predição de preço.
+Deve-se portanto investigar outras variáveis categógicas a fim de estabelecer novas relações. Vamos avaliar a localização do motor ("engine-location") e o preço.
+In [ ]:
+plt.figure(figsize=(12,8))
+sns.boxplot(x='engine-location',y='price',data=df)
+Observa-se que os valores de localização do motor em relação ao preço mostraram boa distinção e podem ser considerados na elaboração de um modelo preditivo.
+Realize a mesma análise empregando o tipo de tração (dianteira, traseira ou quatro rodas) que está representada pela variável categórica "drive-wheels", com o preço do veículo. O que você concluiu ???
+3 - Análise Estatística Descritiva
+Primeiramente vamos visualizar as variáveis utilizando o método "description". Este método calcula a estatística básica para todas as variáveis contínuas. Campos sem valores numéricos (NaN) são descartados automaticamente. Este método irá apresentar:
+a frequência da variável
+a média
+o desvio padrão
+Mínimo
+IQR (Distribuição Interquartil: 25%, 50% e 75%)
+Máximo
+In [ ]:
+df.describe()
+Pode-se aplicar o método describe em variáveis do tipo "objeto"
+In [ ]:
+df.describe(include=['object'])
+Contagem de valores
+Uma boa maneira para conhecimento do número de características variáveis.
+Iremos aplicar o método "value_counts" na coluna 'drive-wheels'.
+Este método só trabalha sobre séries pandas e não dataframes, logo, será aplicado somente sobre um colchete.
+In [ ]:
+df['drive-wheels'].value_counts()
+Pode-se converter a série em um dataframe
+In [ ]:
+df['drive-wheels'].value_counts().to_frame()
+Repetindo a operação e salvando os resultados em um dataframe.
+Renomeando a coluna 'drive-wheels' para 'value_counts'.
+In [ ]:
+drive_wheels_counts=df['drive-wheels'].value_counts().to_frame()
+drive_wheels_counts.rename(columns={'drive-wheels':'value_counts'}, inplace=True)
+drive_wheels_counts
+Renomeando o índice para 'drive-wheels'
+In [ ]:
+drive_wheels_counts.index.name='drive-wheels'
+drive_wheels_counts
+Repetindo o processo para localização do motor ('engine-location')
+In [ ]:
+engine_loc_counts = df['engine-location'].value_counts().to_frame()
+engine_loc_counts.rename(columns={'engine-location':'value_counts'},inplace=True)
+engine_loc_counts.index.name='engine-location'
+engine_loc_counts
+Devido a distribuição desbalanceada, a variável não deve ser considerada em um modelo preditivo
+4. Agrupamento
+O método "groupby" agrupa variáveis de diferentes categorias.
+Os dados são agrupados em uma ou várias variáveis e as análises são realizadas por grupos individualmente.
+Exemplo: agrupamento da variável drive-wheels.
+In [ ]:
+df['drive-wheels'].unique()
+In [ ]:
+df_group_one = df[['drive-wheels','body-style','price']]
+Cálculo do preço médio para cada categoria
+In [ ]:
+df_group_one = df_group_one.groupby(['drive-wheels'],as_index=False).mean()
+df_group_one
+Os resultados mostraram que os veículos com tração traseira ("rwd") são mais caros.
+Este processo permite o agrupamento e análise de várias variáveis.
+In [ ]:
+df_gpt = df[['drive-wheels','body-style','price']]
+df_gpt1=df_gpt.groupby(['drive-wheels','body-style'],as_index=False).mean()
+df_gpt1
+O privotamento da tabela permite uma melhor visualização e entendimento dos dados.
+Neste caso a variável "drive-wheels" indicará as linhas e "body-style" as colunas.
+In [ ]:
+gpt1_pivot = df_gpt1.pivot(index='drive-wheels',columns='body-style')
+gpt1_pivot = gpt1_pivot.fillna(0) # preenchimento dos valores ausentes com 0
+gpt1_pivot
+Apresentação dos resultados.
+Drive-wheels, body-style vs price
+In [ ]:
+fig, ax = plt.subplots()
+im = ax.pcolor(gpt1_pivot, cmap='RdBu')
+row_labels=gpt1_pivot.columns.levels[1]
+col_labels=gpt1_pivot.index
+ax.set_xticks(np.arange(gpt1_pivot.shape[1])+0.5, minor=False)
+ax.set_yticks(np.arange(gpt1_pivot.shape[0])+0.5, minor=False)
+ax.set_xticklabels(row_labels,minor=False)
+ax.set_yticklabels(col_labels,minor=False)
+plt.xticks(rotation=90)
+fig.colorbar(im)
+plt.show()
+5. Correlação e Causalidade
+Correlação: medida de extensão da interdependência entre variáveis.
+Causalidade: relação de causa e efeito entre duas variáveis.
+Correlação e Causalidade são conceitos diferentes e a correlação não implica em causalidade.
+Determinar a correlação é muito mais simples do que determinar a causalidade.
+A determinação da causalidade pode requerer a experimentação individual.
+Coeficiente de Correlação de Pearson: identifica o nível de correlação entre duas variáveis (int64 ou float64) X e Y.
+Tem-se:
+1 - Forte correlação positiva
+0 - Sem correlação
+-1 - Forte correlação negativa
+In [ ]:
+df.corr()
+P-value (ou P-valor)
+É o valor da probabilidade de que a correlação entre duas variáveis é estatisticamente significante.
+Um nível de significância de 0.05 (5%) representa 95% de confiança no valor da correlação entre as variáveis. Ou seja:
+p menor que 0.001: forte evidência de que a correlação é significante
+p menor que 0.05: evidência moderada de que a correlação é significante
+p menor que 0.1: evidência fraca de que a correlação é significante
+p maior que 0.1: não existe evidência de que a correlação é significante
+Estas informações podem ser obtidas a partir da aplicação do módulo stats da biblioteca "scipy"
+In [ ]:
+from scipy import stats
+Wheel base x price
+Cálculo do coeficiente de correlação e do P-valor
+In [ ]:
+pearson_coef, p_value = stats.pearsonr(df['wheel-base'],df['price'])
+print("Coeficiente Pearson de correlação:  ",pearson_coef,"\nP-value: ",p_value)
+Conclusão: O valor do coeficiente Pearson de correlação mostrou uma moderada para fraca relação linear entre as variáveis "wheel-base" e "price"
+Já o P-value mostrou que o resultado da correlação é obtido com alta significância, ou seja, os resultados são confiáveis.
+Horsepower x price
+Cálculo do coeficiente de correlação e do P-valor
+In [ ]:
+pearson_coef, p_value = stats.pearsonr(df['horsepower'],df['price'])
+print("Coeficiente Pearson de correlação:  ",pearson_coef,"\nP-value: ",p_value)
+Conclusão: O valor do coeficiente Pearson de correlação mostrou uma relação linear forte entre as variáveis "horsepower" e "price".
+O P-value mostrou que o resultado da correlação é obtido com alta significância, ou seja, os resultados são confiáveis.
+Length x price
+In [ ]:
+pearson_coef, p_value = stats.pearsonr(df['length'],df['price'])
+print("Coeficiente Pearson de correlação:  ",pearson_coef,"\nP-value: ",p_value)
+Conclusão: O valor do coeficiente Pearson de correlação mostrou uma relação moderada entre as variáveis "length" e "price".
+O P-value mostrou que o resultado da correlação é obtido com alta significância, ou seja, os resultados são confiáveis.
+Width x price
+In [ ]:
+pearson_coef, p_value = stats.pearsonr(df['width'],df['price'])
+print("Coeficiente Pearson de correlação:  ",pearson_coef,"\nP-value: ",p_value)
+Conclusão: O valor do coeficiente Pearson de correlação mostrou uma relação linear forte entre as variáveis "Width" e "price".
+O P-value mostrou que o resultado da correlação é obtido com alta significância, ou seja, os resultados são confiáveis.
+Curb-weight x price
+In [ ]:
+pearson_coef, p_value = stats.pearsonr(df['curb-weight'],df['price'])
+print("Coeficiente Pearson de correlação:  ",pearson_coef,"\nP-value: ",p_value)
+Conclusão: O valor do coeficiente Pearson de correlação mostrou uma relação linear forte entre as variáveis "Curb-weight" e "price".
+O P-value mostrou que o resultado da correlação é obtido com alta significância, ou seja, os resultados são confiáveis.
+Engine size x price
+In [ ]:
+pearson_coef, p_value = stats.pearsonr(df['engine-size'],df['price'])
+print("Coeficiente Pearson de correlação:  ",pearson_coef,"\nP-value: ",p_value)
+Conclusão: O valor do coeficiente Pearson de correlação mostrou uma relação linear forte entre as variáveis "Engine size" e "price".
+O P-value mostrou que o resultado da correlação é obtido com alta significância, ou seja, os resultados são confiáveis.
+Bore x price
+In [ ]:
+pearson_coef, p_value = stats.pearsonr(df['bore'],df['price'])
+print("Coeficiente Pearson de correlação:  ",pearson_coef,"\nP-value: ",p_value)
+Conclusão: O valor do coeficiente Pearson de correlação mostrou uma relação linear fraca entre as variáveis "Bore" e "price".
+O P-value mostrou que o resultado da correlação é obtido com alta significância, ou seja, os resultados são confiáveis.
+City-mpg x price
+In [ ]:
+pearson_coef, p_value = stats.pearsonr(df['city-mpg'],df['price'])
+print("Coeficiente Pearson de correlação:  ",pearson_coef,"\nP-value: ",p_value)
+Conclusão: O valor do coeficiente Pearson de correlação mostrou uma relação linear moderada entre as variáveis "City-mpg" e "price".
+O P-value mostrou que o resultado da correlação é obtido com alta significância, ou seja, os resultados são confiáveis.
+Highway-mpg x price
+In [ ]:
+pearson_coef, p_value = stats.pearsonr(df['highway-mpg'],df['price'])
+print("Coeficiente Pearson de correlação:  ",pearson_coef,"\nP-value: ",p_value)
+Conclusão: O valor do coeficiente Pearson de correlação mostrou uma relação linear negativa e moderada para forte entre as variáveis "Highway-mpg" e "price".
+O P-value mostrou que o resultado da correlação é obtido com alta significância, ou seja, os resultados são confiáveis.
+Quais variáveis numéricas poderiam ser selecionadas na construção de um modelo preditivo ???
+Horsepower
+Width
+Curb-weight
+Engine size
+Análise de Variância ==> ANOVA
+Método estatístico empregado para avaliação da diferença entre as médias de dois ou mais conjuntos (grupos) de dados.
+Nas análises são considerados dois parâmetros.
+F-test-score: ANOVA assume um valor único para a média de todos os dados. Realiza o cálculo do desvio das médias dos grupos em relação a média assumida. Quanto maior o valor do F-test-score, maior a diferença entre as médias.
+P-value: retorna a significância estatística do cálculo.
+Drive Wheels (Tração dianteira, traseira e nas quatro rodas)
+São variáveis categorizadas. A função groupby irá capturar os grupos e as médias serão calculadas sobre cada grupo.
+In [ ]:
+gpt2=df_gpt[['drive-wheels','price']].groupby(['drive-wheels'])
+gpt2.head(2)
+In [ ]:
+df_gpt
+In [ ]:
+gpt2.get_group('4wd')['price']
+Aplicação da função "f_oneway" no módulo stats para obtenção dos valores do F-test-score e P-value
+In [ ]:
+f_val,p_val=stats.f_oneway(gpt2.get_group('fwd')['price'],gpt2.get_group('rwd')['price'],gpt2.get_group('4wd')['price'])
+print("resultados da ANOVA \tF-test-score: ",f_val,"\tP-value: ",p_val)
+Os resultados mostraram que os três grupos de veículos (tração dianteira, tração trazeira e tração nas quatro rodas) mostraram uma forte correlação com boa significância.
+Avaliando as categorias em pares: Tração dianteira x Tração traseira
+In [ ]:
+f_val,p_val=stats.f_oneway(gpt2.get_group('fwd')['price'],gpt2.get_group('rwd')['price'])
+print("resultados da ANOVA \tF-test-score: ",f_val,"\tP-value: ",p_val)
+Tração traseira (rwd) x Tração nas quatro rodas(4wd)
+In [ ]:
+f_val,p_val=stats.f_oneway(gpt2.get_group('rwd')['price'],gpt2.get_group('4wd')['price'])
+print("resultados da ANOVA \tF-test-score: ",f_val,"\tP-value: ",p_val)
+Tração dianteira (fwd) x Tração nas quatro rodas(4wd)
+In [ ]:
+f_val,p_val=stats.f_oneway(gpt2.get_group('fwd')['price'],gpt2.get_group('4wd')['price'])
+print("resultados da ANOVA \tF-test-score: ",f_val,"\tP-value: ",p_val)
